@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummAIry</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --sidebar-bg: #f7f7f8;
+            --text-color: #000000;
+            --secondary-text: #6e6e80;
+            --border-color: #e5e5e7;
+            --primary-color: #5436da;
+            --hover-color: #f1f1f2;
+            --chat-user-bg: #e1f3ff;
+            --chat-assistant-bg: #f0f0f0;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --sidebar-bg: #2a2a2a;
+            --text-color: #ffffff;
+            --secondary-text: #b0b0b0;
+            --border-color: #3a3a3a;
+            --primary-color: #7b61ff;
+            --hover-color: #2c2c2c;
+            --chat-user-bg: #2c3e50;
+            --chat-assistant-bg: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            overflow-y: auto;
+            transition: background-color 0.3s;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        h1,
+        h2 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h2 {
+            font-size: 1rem;
+            color: var(--secondary-text);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            font-weight: 500;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #fileList {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: var(--hover-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .file-item button {
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            width: auto;
+            margin-left: auto;
+            margin-top: auto;
+            margin-bottom: auto;
+            text-align: right;
+        }
+
+        /* Chat History Styles */
+        #chatHistory {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            margin-left: 20%;
+            margin-right: 20%;
+            margin-top: 4%;
+            scrollbar-width: thin;
+            /* Firefox */
+            scrollbar-color: #888;
+            /* Firefox */
+        }
+
+        #chatHistory::-webkit-scrollbar {
+            width: 8px;
+            /* Adjust the width of the scrollbar */
+            height: 8px;
+            /* Adjust the height of the scrollbar */
+        }
+
+        #chatHistory::-webkit-scrollbar-track {
+            background-color: transparent;
+            /* No background color for the track */
+            border-radius: 10px;
+            /* Rounded corners for the track */
+        }
+
+        #chatHistory::-webkit-scrollbar-thumb {
+            background-color: #888;
+            /* Color of the scrollbar thumb */
+            border-radius: 10px;
+            /* Rounded corners for the thumb */
+            border: 2px solid #f1f1f1;
+            /* Border around the thumb */
+        }
+
+        #chatHistory::-webkit-scrollbar-thumb:hover {
+            background-color: #555;
+            /* Color of the thumb on hover */
+        }
+
+        .chat-message {
+            max-width: 70%;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--chat-user-bg);
+        }
+
+        .assistant-message {
+            align-self: flex-start;
+            background-color: var(--chat-assistant-bg);
+            max-width: 700px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        #chatInput {
+            margin-right: 1rem;
+            margin-bottom: 0;
+            min-height: 60px;
+        }
+
+        #sendMessage {
+            width: auto;
+            margin-bottom: 0;
+            height: 60px;
+        }
+
+        .save-chat-btn {
+            position: absolute;
+            bottom: 3rem;
+            width: calc(100% - 2rem);
+            left: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .toggle-dark-mode {
+            position: absolute;
+            bottom: 0;
+            width: calc(100% - 2rem);
+            left: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+
+        #onboardingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .onboarding-content {
+            background-color: var(--bg-color);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="onboardingScreen">
+        <div class="onboarding-content">
+            <h2>Welcome to SummAIry</h2>
+            <input type="text" id="userName" placeholder="Enter your name">
+            <input type="text" id="apiKey" placeholder="Enter your Gemini API Key">
+            <button onclick="completeOnboarding()">Get Started</button>
+        </div>
+    </div>
+    <div class="sidebar">
+        <h1>SummAIry</h1>
+        <div class="section">
+            <h2>Upload Files</h2>
+            <input type="file" id="fileInput" accept=".pdf,.txt,.doc,.docx">
+            <button onclick="uploadFile()">Upload File</button>
+        </div>
+        <div class="section">
+            <h2>Uploaded Files</h2>
+            <div id="fileList"></div>
+        </div>
+        <div class="section">
+            <button class="toggle-dark-mode" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+            <button onclick="saveChat()" class="save-chat-btn">Save Chat</button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div id="chatHistory"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="Ask a question or type 'summarize'">
+            <button id="sendMessage" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let chatHistory = [];
+        let userName = '';
+
+        function initAnimations() {
+            chatHistory.push({ role: 'assistant', content: "Hi I'm SummAI, how may I help you?" });
+            gsap.from('.sidebar', { duration: 1, x: '-100%', ease: 'power3.out' });
+            gsap.from('.main-content', { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: 0.5 });
+            gsap.from('h1, h2', { duration: 0.8, opacity: 0, y: 30, stagger: 0.2, ease: 'power3.out', delay: 0.8 });
+            updateChatHistory();
+        }
+
+        function completeOnboarding() {
+            userName = document.getElementById('userName').value;
+            const apiKey = document.getElementById('apiKey').value;
+            if (userName && apiKey) {
+                localStorage.setItem('userName', userName);
+                localStorage.setItem('apiKey', apiKey);
+                document.getElementById('onboardingScreen').style.display = 'none';
+                initAnimations();
+            } else {
+                alert('Please enter both your name and API key.');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                let content = e.target.result;
+                if (file.type === 'application/pdf') {
+                    content = await extractTextFromPDF(content);
+                }
+                uploadedFiles.push({ name: file.name, content: content });
+                updateFileList();
+                saveFiles();
+            };
+
+            if (file.type === 'application/pdf') {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        async function extractTextFromPDF(arrayBuffer) {
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            return text;
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = uploadedFiles.map(file => `
+        <div class="file-item">
+            <span>${file.name}</span>
+            <button onclick="removeFile('${file.name}')">Remove</button>
+        </div>
+    `).join('');
+
+            gsap.from('.file-item', {
+                duration: 0.5,
+                opacity: 0,
+                y: 20,
+                stagger: 0.1,
+                ease: 'power3.out'
+            });
+        }
+
+        function removeFile(fileName) {
+            const fileIndex = uploadedFiles.findIndex(file => file.name === fileName);
+            if (fileIndex !== -1) {
+                const fileItem = document.querySelectorAll('.file-item')[fileIndex];
+                gsap.to(fileItem, {
+                    duration: 0.3,
+                    opacity: 0,
+                    x: -50,
+                    onComplete: () => {
+                        uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+                        updateFileList();
+                        saveFiles();
+                    }
+                });
+            }
+        }
+
+        function saveFiles() {
+            localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+        }
+
+        function loadFiles() {
+            const savedFiles = localStorage.getItem('uploadedFiles');
+            if (savedFiles) {
+                uploadedFiles = JSON.parse(savedFiles);
+                updateFileList();
+            }
+        }
+
+        function updateChatHistory() {
+            const chatHistoryElement = document.getElementById('chatHistory');
+            const lastMessageElement = chatHistoryElement.lastElementChild;
+
+            chatHistory.forEach((message, index) => {
+                if (index >= chatHistory.length - 1) {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('chat-message', `${message.role}-message`);
+                    messageElement.innerHTML = `
+                <strong>${message.role === 'user' ? userName : 'SummAI'}:</strong> ${applyTextStyling(message.content)}
+            `;
+                    chatHistoryElement.appendChild(messageElement);
+
+                    // Animate the new message
+                    gsap.from(messageElement, {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.5,
+                        ease: 'power3.out',
+                    });
+                }
+            });
+
+            // Scroll to the bottom of the chat history
+            chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const question = chatInput.value.trim();
+
+            if (!question) return;
+
+            chatInput.value = '';
+            chatHistory.push({ role: 'user', content: question });
+            updateChatHistory();
+
+            const apiKey = localStorage.getItem('apiKey');
+            if (!apiKey) {
+                alert('API key not found. Please refresh the page and enter your API key.');
+                return;
+            }
+
+            let prompt = '';
+            if (uploadedFiles.length > 0) {
+                const allContent = uploadedFiles.map(file => file.content).join('\n\n');
+                prompt = `Answer the following question based on the provided documents:\nQuestion: ${question}\n\nDocuments:\n${allContent}`;
+            } else {
+                prompt = question; // Use the question directly without document context
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
+                    const assistantResponse = data.candidates[0].content.parts[0].text;
+
+                    // Add the assistant's response to the chat history
+                    chatHistory.push({ role: 'assistant', content: assistantResponse });
+
+                    // Perform typewriter effect and update chat history simultaneously
+                    await typeWriterEffect(assistantResponse);
+                } else {
+                    throw new Error('Unexpected API response format');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                chatHistory.push({ role: 'assistant', content: 'An error occurred while processing your request. Please try again.' });
+                updateChatHistory();
+            }
+        }
+
+        async function typeWriterEffect(text) {
+            const chatHistoryElement = document.getElementById('chatHistory');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', 'assistant-message');
+            messageElement.innerHTML = '<strong>SummAI:</strong> ';
+            chatHistoryElement.appendChild(messageElement);
+
+            // Simulate typewriter effect
+            for (let i = 0; i < text.length; i++) {
+                messageElement.innerHTML += text.charAt(i);
+                chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, 10)); // Adjust typing speed here (milliseconds)
+            }
+
+            // Apply text styling after typewriter effect
+            messageElement.innerHTML = `<strong>SummAI:</strong> ${applyTextStyling(text)}`;
+        }
+
+        function applyTextStyling(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function saveChat() {
+            const chatContent = chatHistory.map(message => `${message.role}: ${message.content}`).join('\n\n');
+            const blob = new Blob([chatContent], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'chat_history.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        window.onload = function () {
+            document.getElementById('chatInput').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            const savedUserName = localStorage.getItem('userName');
+            const savedApiKey = localStorage.getItem('apiKey');
+            if (savedUserName && savedApiKey) {
+                userName = savedUserName;
+                document.getElementById('onboardingScreen').style.display = 'none';
+                initAnimations();
+            }
+
+            loadFiles();
+
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.worker.min.js';
+        };
+
+    </script>
+</body>
+
+</html>
