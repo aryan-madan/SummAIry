@@ -7,7 +7,7 @@
     <title>SummAIry</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet"> 
     <style>
         :root {
             --bg-color: #ffffff;
@@ -40,7 +40,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Satoshi', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.5;
@@ -95,7 +95,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 1rem;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Satoshi', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
@@ -275,6 +275,34 @@
             padding: 2rem;
             border-radius: 8px;
             text-align: center;
+        }
+
+
+
+        input[type="file"]::-webkit-file-upload-button {
+            font-family: 'Satoshi', sans-serif;
+            padding: 0.5rem;
+            /* Make the button smaller */
+            border: 1px solid var(--border-color);
+            margin-right: 10px;
+            border-radius: 4px;
+            font-size: 1rem;
+            /* Smaller font size */
+            background-color: #ffffff;
+            /* Light gray background */
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="file"]::-webkit-file-upload-button:hover {
+            opacity: 0.9;
+        }
+
+        .dark-mode input[type="file"]::-webkit-file-upload-button {
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
         }
 
         @media (max-width: 768px) {
