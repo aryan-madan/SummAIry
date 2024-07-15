@@ -7,7 +7,7 @@
     <title>SummAIry</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet"> 
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #ffffff;
@@ -277,19 +277,14 @@
             text-align: center;
         }
 
-
-
         input[type="file"]::-webkit-file-upload-button {
             font-family: 'Satoshi', sans-serif;
             padding: 0.5rem;
-            /* Make the button smaller */
             border: 1px solid var(--border-color);
             margin-right: 10px;
             border-radius: 4px;
             font-size: 1rem;
-            /* Smaller font size */
-            background-color: #ffffff;
-            /* Light gray background */
+            background-color: var(--bg-color);
             color: var(--text-color);
             cursor: pointer;
             transition: background-color 0.3s ease;
@@ -299,11 +294,35 @@
             opacity: 0.9;
         }
 
+        input[type="file"]::file-selector-button {
+            font-family: 'Satoshi', sans-serif;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            margin-right: 10px;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            opacity: 0.9;
+        }
+
         .dark-mode input[type="file"]::-webkit-file-upload-button {
             background-color: var(--sidebar-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
         }
+
+        .dark-mode input[type="file"]::file-selector-button {
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
 
         @media (max-width: 768px) {
             body {
